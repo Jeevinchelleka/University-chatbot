@@ -1,30 +1,23 @@
 "use client";
-import { useState } from "react";
-import ChatInput from "./ChatInput";
+import Message from "./Message";
 
-export default function ChatContainer({ inputValue }) {
-  const [messages, setMessages] = useState([]);
-
-  const handleSendMessage = (message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
-  };
-
+export default function ChatContainer({ messages }) {
   return (
     <div className="flex flex-col h-full">
       {/* Chat Messages */}
       <div className="flex-grow overflow-y-auto p-4">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className="mb-2 p-2 bg-blue-100 rounded-lg shadow-md"
-          >
-            {msg}
-          </div>
-        ))}
+        {messages.length > 0 ? (
+          messages.map((msg, index) => (
+            <Message
+              key={index}
+              text={msg.text}
+              isUser={msg.sender === "user"}
+            />
+          ))
+        ) : (
+          <div className="p-4 text-gray-500">Start a conversation...</div>
+        )}
       </div>
-
-      {/* Chat Input */}
-      <ChatInput inputValue={inputValue} onSendMessage={handleSendMessage} />
     </div>
   );
 }

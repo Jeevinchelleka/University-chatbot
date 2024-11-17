@@ -8,9 +8,60 @@ export default function Home() {
   const [inputValue, setInputValue] = useState(""); // Manage the input value
   const [messages, setMessages] = useState([]); // Store messages
 
-  const handleSendMessage = (message) => {
-    setMessages((prevMessages) => [...prevMessages, message]); // Add new message
-    setInputValue(""); // Clear input field after sending
+  // Function to handle sending the message to the backend
+  const handleSendMessage = async (message) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: "user", text: message },
+    ]);
+    setInputValue(""); // Clear the input field
+
+    try {
+      // Log the message that is being sent to the server
+      console.log("Sending message:", message);
+
+      // Make the POST request to the backend
+      const response = await fetch("http://127.0.0.1:5000/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: message }),
+      });
+
+      // Check if the response is successful
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Parse the JSON response
+      const data = await response.json();
+      console.log("Response from backend:", data);
+
+      // Check if the "AI" field is available in the response
+      if (data.AI) {
+        // If "AI" exists, show the response in the chat
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: "bot", text: data.AI },
+        ]);
+        console.log("Bot response:", data.AI);
+      } else {
+        // Handle case if "AI" is missing or empty
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: "bot", text: "No AI response" },
+        ]);
+        console.log("No AI response found in the backend data");
+      }
+    } catch (error) {
+      // If an error occurs, log the error
+      console.error("Error during API call:", error.message || error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "bot", text: "Something went wrong" },
+      ]);
+    }
   };
 
   return (
@@ -27,14 +78,18 @@ export default function Home() {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className="mb-2 p-2 bg-blue-100 rounded-lg shadow-md"
+                className={`mb-2 p-2 rounded-lg shadow-md ${
+                  msg.sender === "bot"
+                    ? "bg-blue-100 text-black"
+                    : "bg-gray-200 text-black"
+                }`}
               >
-                {msg}
+                {msg.text}
               </div>
             ))}
           </div>
 
-          {/* ChatInput */}
+          {/* Chat Input */}
           <ChatInput
             inputValue={inputValue} // Pass input value
             setInputValue={setInputValue} // Pass the setter to handle typing
