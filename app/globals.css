@@ -18,3 +18,7 @@
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch; /* Enable smooth scrolling for mobile */
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
