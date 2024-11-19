@@ -8,6 +8,32 @@ export default function Home() {
   const [inputValue, setInputValue] = useState(""); // Manage the input value
   const [messages, setMessages] = useState([]); // Store messages
 
+  // Function to parse and render Markdown-like text
+  const renderMessageText = (text) => {
+    return text.split("\n").map((line, index) => {
+      // Check for bold text (**text**)
+      if (line.startsWith("**") && line.endsWith("**")) {
+        return (
+          <p key={index}>
+            <strong>{line.replace(/\*\*/g, "")}</strong>
+          </p>
+        );
+      }
+
+      // Check for bullet points (* text)
+      if (line.trim().startsWith("* ")) {
+        return (
+          <li key={index} className="list-disc ml-5">
+            {line.replace("* ", "").trim()}
+          </li>
+        );
+      }
+
+      // Default rendering for plain text
+      return <p key={index}>{line}</p>;
+    });
+  };
+
   // Function to handle sending the message to the backend
   const handleSendMessage = async (message) => {
     setMessages((prevMessages) => [
@@ -40,14 +66,12 @@ export default function Home() {
 
       // Check if the "AI" field is available in the response
       if (data.AI) {
-        // If "AI" exists, show the response in the chat
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: "bot", text: data.AI },
         ]);
         console.log("Bot response:", data.AI);
       } else {
-        // Handle case if "AI" is missing or empty
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: "bot", text: "No AI response" },
@@ -55,7 +79,6 @@ export default function Home() {
         console.log("No AI response found in the backend data");
       }
     } catch (error) {
-      // If an error occurs, log the error
       console.error("Error during API call:", error.message || error);
       setMessages((prevMessages) => [
         ...prevMessages,
@@ -84,7 +107,11 @@ export default function Home() {
                     : "bg-gray-200 text-black"
                 }`}
               >
-                {msg.text}
+                {msg.sender === "bot" ? (
+                  <div>{renderMessageText(msg.text)}</div>
+                ) : (
+                  msg.text
+                )}
               </div>
             ))}
           </div>
